@@ -10,9 +10,7 @@ pd.set_option('display.width', 1500)      # max table width to display
 import time
 # pylint: disable=maybe-no-member
 # connect to MetaTrader 5
-#To change this value if time goes out of sync
-
-currentTime = "11"
+currentTime = 0
 weight_54 = 1/(54+1)
 weight_18 = 1/(18+1)
 correction_54 = 0.999554430872578
@@ -22,6 +20,11 @@ symbol = "USDJPY#"
 deviation = 20
 timezone = pytz.timezone("etc/UTC")
 utc_from = datetime(2023, 2, 19, tzinfo=timezone)
+#Calculate current time
+if int(str(datetime.now())[11:13])-6 < 10:
+    currentTime = "0" + str(int(str(datetime.now())[11:13])-6)
+else:
+    currentTime = str(int(str(datetime.now())[11:13])-6)
 
 if not mt5.initialize():
     print("initialize() failed")
@@ -63,8 +66,6 @@ sell_request = {
 
 
 print(price_bid, price_ask)
-
-
 
 
 #Functions(1H indicators)
@@ -171,10 +172,11 @@ while True:
     #Evaluate data every hour and when price is home for the day
     if (currentTime == latestTime and isHome):
         #result = mt5.order_send(sell_request)
+        #result = mt5.order_send(buy_request)
         final_ema_18 = calculateEMA18(rates_18)
         final_ema_54 = calculateEMA56(rates_54)
         final_sma_200 = calculateSMA200(rates_200)
-
+        #Check the three MA's trend (TODO: check the the MA range, if too close its consider ranging)
         if (final_sma_200 < final_ema_54 and final_ema_54 < final_ema_18):
             print('uptrend')
         elif (final_sma_200 > final_ema_54 and final_ema_54 > final_ema_18):
@@ -187,7 +189,7 @@ while True:
         else:
             currentTime = str(int(latestTime) + 1)
 
-    #print(latestTime, currentTime, final_ema_18, final_ema_54, final_sma_200)
+        print(latestTime, currentTime, final_ema_18, final_ema_54, final_sma_200)
         
         
    
